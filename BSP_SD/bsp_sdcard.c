@@ -929,12 +929,12 @@ uint8_t   SD_WriteMultiBlock   (uint32_t   sector,
 		rxdata = SPI_ReadWriteByte(0xff);                      /* 接收SD应答                           */
 
 		while(!SPI_ReadWriteByte(0xff)){
-            cnt_timeout++;
-            if(cnt_timeout >= 2000){
-                SD_CS_DISABLE();
-                return SD_ERR_TIMEOUT;
-            }
-        }
+                        cnt_timeout++;
+                        if(cnt_timeout >= 2000){
+                                SD_CS_DISABLE();
+                                return SD_ERR_TIMEOUT;
+                        }
+                }
 	}
 
 	SPI_ReadWriteByte(0xFD);
@@ -942,12 +942,12 @@ uint8_t   SD_WriteMultiBlock   (uint32_t   sector,
     
         cnt_timeout = 0;
 	while(!SPI_ReadWriteByte(0xff)){
-        cnt_timeout++;
-        if(cnt_timeout >= 2000){
-            SD_CS_DISABLE();
-            return SD_ERR_TIMEOUT;
+                cnt_timeout++;
+                if(cnt_timeout >= 2000){
+                        SD_CS_DISABLE();
+                        return SD_ERR_TIMEOUT;
+                }
         }
-    }
 
 	SD_CS_DISABLE();
 
@@ -968,7 +968,7 @@ uint8_t   SD_WriteMultiBlock   (uint32_t   sector,
 */
 uint8_t   SD_SectorClear   (uint32_t   sector)
 {
-	uint8_t   err;
+        uint8_t   err;
 
 	err = SD_WriteSingleBlock(sector,SD_Sector_Clear_Array);
 	return err;
