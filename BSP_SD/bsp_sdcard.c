@@ -24,6 +24,8 @@ u8   SD_Type=0;                                            /* SD卡类型          
 
 u8   SD_Sector_Clear_Array[512];                           /* SD卡扇区擦除用数组                       */
 
+u8   SD_CID_Data[18];
+u8   SD_CSD_Data[18];
 /*
 *****************************************
 *          调试用临时全局变量
@@ -330,8 +332,8 @@ uint8_t   SPI_ReadWriteByte   (uint8_t   txdata)
 *                                           SD_WaitReady
 * Description : 等待 SD 发送/接收完成
 * Arguments   : NONE
-* Returns     : 0：ERR_NONE
-*               1：ERR_TIMEOUT
+* Returns     : SD_ERR_NONE
+*               SD_ERR_TIMEOUT
 * Notes       : 
 *********************************************************************************************************
 */
@@ -345,8 +347,8 @@ uint8_t   SD_WaitReady   (void)
 		if(rxdata != 0xFF) break;
 	}
 
-	if(cnt >= 8000) return 1;
-	return 0;
+	if(cnt >= 8000) return SD_ERR_TIMEOUT;
+	return SD_ERR_NONE;
 }
 
 
@@ -380,7 +382,10 @@ uint8_t   SD_SendCommand   (u8 cmd, u32 arg, u8 crc)
 
 	while((rxdata = SPI_ReadWriteByte(0xFF))==0xFF){
 		retry++;
-		if(retry > 200) break;
+		if(retry > 200){
+            SD_CS_DISABLE();
+            return SD_ERR_TIMEOUT;
+        }
 	}
 
 	SD_CS_DISABLE();
@@ -419,7 +424,10 @@ uint8_t   SD_SendCommand_NoDeassert   (u8 cmd, u32 arg, u8 crc)
 
 	while((rxdata = SPI_ReadWriteByte(0xFF))==0xFF){
 		retry++;
-		if(retry > 200) break;
+		if(retry > 200){
+            SD_CS_DISABLE();
+            return SD_ERR_TIMEOUT;
+        }
 	}
 	return rxdata;
 }
@@ -432,9 +440,8 @@ uint8_t   SD_SendCommand_NoDeassert   (u8 cmd, u32 arg, u8 crc)
 * Arguments   : p_data： 数据存放地址
 *               length： 数据长度
 *               release：片选释放
-* Returns     : 0: ERR_NONE
-*               1: ERR_TIMEOUT
-*               2: ERR_NO_DATA
+* Returns     : SD_ERR_NONE
+*               SD_ERR_TIMEOUT
 * Notes       : 
 *********************************************************************************************************
 */
@@ -454,7 +461,7 @@ uint8_t   SD_ReceiveData   (uint8_t  *p_data,
 	}
 	if(cnt>=2000){
 		SD_CS_DISABLE();
-		return 1;
+		return SD_ERR_TIMEOUT;
 	}
 
 	for(cnt=0;cnt<length;cnt++){
@@ -469,7 +476,7 @@ uint8_t   SD_ReceiveData   (uint8_t  *p_data,
 		SPI_ReadWriteByte(0xFF);
 	}
 
-	return 0;
+	return SD_ERR_NONE;
 }
 
 
@@ -478,8 +485,9 @@ uint8_t   SD_ReceiveData   (uint8_t  *p_data,
 *                                              SD_GetCID
 * Description : 获取 SD CID 信息如制造商等
 * Arguments   : p_cid_data：用于存放CID信息的地址,需要长度16字节以上
-* Returns     : 0: ERR_NONE
-*               n: ERR_TIMEOUT
+* Returns     : SD_ERR_NONE
+*               SD_ERR_TIMEOUT
+*               SD_ERR_RESPONSE_FAILURE
 * Notes       : 
 *********************************************************************************************************
 */
@@ -490,7 +498,7 @@ uint8_t   SD_GetCID   (uint8_t  *p_cid_data)
 	uint16_t   cnt;
 
 	rxdata = SD_SendCommand(CMD10, 0, 0xFF);
-	if(rxdata != 0x00) return rxdata;
+	if(rxdata != 0x00) return SD_ERR_RESPONSE_FAILURE;
 	
 	SD_CS_ENABLE();
 	
@@ -500,10 +508,10 @@ uint8_t   SD_GetCID   (uint8_t  *p_cid_data)
 	}
 	if(cnt>=2000){
 		SD_CS_DISABLE();
-		return 1;
+		return SD_ERR_TIMEOUT;
 	}
 	rxdata = SPI_ReadWriteByte(0xFF);
-	if(rxdata != 0xFF) return 2;
+	if(rxdata != 0xFF) return SD_ERR_RESPONSE_FAILURE;
 
 	for(cnt=0;cnt<18;cnt++){
 		p_cid_data[cnt] = SPI_ReadWriteByte(0xFF);
@@ -515,7 +523,7 @@ uint8_t   SD_GetCID   (uint8_t  *p_cid_data)
 	SD_CS_DISABLE();
 	SPI_ReadWriteByte(0xFF);
 
-	return 0;
+	return SD_ERR_NONE;
 }
 
 
@@ -524,8 +532,9 @@ uint8_t   SD_GetCID   (uint8_t  *p_cid_data)
 *                                              SD_GetCSD
 * Description : 获取 SD CSD 信息如存储容量，存储速度
 * Arguments   : p_csd_data：用于存放CSD信息的地址，需要长度16字节以上
-* Returns     : 0: ERR_NONE
-*               n: ERR_TIMEOUT
+* Returns     : SD_ERR_NONE
+*               SD_ERR_TIMEOUT
+*               SD_ERR_RESPONSE_FAILURE
 * Notes       : 
 *********************************************************************************************************
 */
@@ -536,7 +545,7 @@ uint8_t   SD_GetCSD   (uint8_t   *p_csd_data)
 	uint16_t   cnt;
 
 	rxdata = SD_SendCommand(CMD9, 0, 0xFF);
-	if(rxdata != 0x00) return rxdata;
+	if(rxdata != 0x00) return SD_ERR_RESPONSE_FAILURE;
 
 	SD_CS_ENABLE();
 	
@@ -546,10 +555,10 @@ uint8_t   SD_GetCSD   (uint8_t   *p_csd_data)
 	}
 	if(cnt>=2000){
 		SD_CS_DISABLE();
-		return 1;
+		return SD_ERR_TIMEOUT;
 	}
 	rxdata = SPI_ReadWriteByte(0xFF);
-	if(rxdata != 0xFF) return 2;
+	if(rxdata != 0xFF) return SD_ERR_RESPONSE_FAILURE;
 
 	for(cnt=0;cnt<18;cnt++){
 		p_csd_data[cnt] = SPI_ReadWriteByte(0xFF);
@@ -561,7 +570,7 @@ uint8_t   SD_GetCSD   (uint8_t   *p_csd_data)
 	SD_CS_DISABLE();
 	SPI_ReadWriteByte(0xFF);
 
-	return 0;
+	return SD_ERR_NONE;
 }
 
 /*
@@ -569,7 +578,8 @@ uint8_t   SD_GetCSD   (uint8_t   *p_csd_data)
 *                                              SD_GetCapacity
 * Description : 获取SD卡容量
 * Arguments   : NONE
-* Returns     : capacity_fp: SD卡容量，单位GB，如返回7.0             
+* Returns     : capacity_fp: SD卡容量，单位GB，如返回7.0      
+*               SD_ERR_RESPONSE_FAILURE
 * Notes       : 
 *********************************************************************************************************
 */
@@ -585,7 +595,7 @@ float   SD_GetCapacity   (void)
 	uint32_t   capacity;
 	float      capacity_fp;
 
-	if(SD_GetCSD(p_csd_data) != 0) return 2;
+	if(SD_GetCSD(p_csd_data) != 0) return SD_ERR_RESPONSE_FAILURE;
 
 	/* ------------------------ SD_V2.0_HC ------------------------ */
 	if((p_csd_data[0]&0xC0)==0x40){
@@ -632,8 +642,9 @@ float   SD_GetCapacity   (void)
 *                                           SD_Init
 * Description : SD 初始化
 * Arguments   : NONE
-* Returns     : 0: ERR_NONE
-*               1: ERR_TIMEOUT
+* Returns     : SD_ERR_NONE
+*               SD_ERR_TIMEOUT
+*               SD_ERR_RESPONSE_FAILURE
 * Notes       :              
 *********************************************************************************************************
 */
@@ -657,7 +668,7 @@ uint8_t   SD_Init   (void)
 		if(rxdata == 0x01) break;
 	}
 	
-	if(cnt>=200) return rxdata; 
+	if(cnt>=200) return SD_ERR_TIMEOUT; 
 	
 	rxdata = SD_SendCommand_NoDeassert(8, 0x1aa, 0x87);           /* 询问 SD 版本                      */
   
@@ -669,7 +680,7 @@ uint8_t   SD_Init   (void)
 		
 		for(cnt=0;cnt<400;cnt++){
 			rxdata = SD_SendCommand(CMD55, 0, 0);
-			if(rxdata != 0x01) return rxdata;
+			if(rxdata != 0x01) return SD_ERR_RESPONSE_FAILURE;
 			rxdata = SD_SendCommand(ACMD41, 0, 0);
 			if(rxdata == 0x00) break;
 		}
@@ -679,7 +690,7 @@ uint8_t   SD_Init   (void)
 				rxdata = SD_SendCommand(1, 0, 0);
 				if(rxdata == 0x00) break;
 			}
-			if(retry>=400) return 1;   
+			if(retry>=400) return SD_ERR_TIMEOUT;   
 			SD_Type = SD_TYPE_MMC;
 		}
 
@@ -687,7 +698,7 @@ uint8_t   SD_Init   (void)
 		SPI_ReadWriteByte(0xFF);
 
 		rxdata = SD_SendCommand(CMD16, 512, 0xff);
-		if(rxdata != 0x00) return rxdata;  
+		if(rxdata != 0x00) return SD_ERR_RESPONSE_FAILURE;  
 
 	/* ---------------------- SD 2.0 ---------------------- */
 	}else if(rxdata == 0x01){
@@ -702,13 +713,13 @@ uint8_t   SD_Init   (void)
 		if(buff[2]==0x01 && buff[3]==0xAA){                       /* 电压支持范围判断                  */
 			for(cnt=0;cnt<200;cnt++){
 				rxdata = SD_SendCommand(CMD55, 0, 0);
-				if(rxdata!=0x01) return rxdata;
+				if(rxdata!=0x01) return SD_ERR_RESPONSE_FAILURE;
 				rxdata = SD_SendCommand(ACMD41, 0x40000000, 0);
 				if(rxdata == 0x00) break;
 			}
       
 			rxdata = SD_SendCommand_NoDeassert(CMD58, 0, 0);      /* 判断 SD2.0 具体版本               */
-			if(rxdata!=0x00) return rxdata;  
+			if(rxdata!=0x00) return SD_ERR_RESPONSE_FAILURE;  
 
 			buff[0] = SPI_ReadWriteByte(0xFF);                    /* 获取OCR指令                       */
 			buff[1] = SPI_ReadWriteByte(0xFF); 
@@ -741,12 +752,12 @@ uint8_t   SD_Init   (void)
 	test_return = SD_WriteSingleBlock(1,test_sector_write);
 	test_return = SD_WriteSingleBlock(3,test_sector_write);
 
-	SD_ReadSingleBlock(1,test_sector_read);
-    SD_WriteMultiBlock(50000,test_multi_sector_write,3);
-	SD_ReadMultiBlock(4,test_multi_sector_read,3);
+	test_return = SD_ReadSingleBlock(3,test_sector_read);
+    test_return = SD_WriteMultiBlock(50000,test_multi_sector_write,3);
+	test_return = SD_ReadMultiBlock(4,test_multi_sector_read,3);
 	/* ------------------------------------ test 可删除 ------------------------------------ */
 
-	return rxdata;
+	return SD_ERR_NONE;
 }
 
 
@@ -756,8 +767,8 @@ uint8_t   SD_Init   (void)
 * Description : 读取SD卡的一个block块，512kB 512字节
 * Arguments   : sector   ：SD卡扇区
 *               p_buffer ：用于存放读取数据的数组指针
-* Returns     : 0: ERR_NONE
-*               n: ERR_TIMEOUT/ERR_NO_DATA
+* Returns     : SD_ERR_NONE
+*               SD_ERR_RESPONSE_FAILURE
 * Notes       : 
 *********************************************************************************************************
 */
@@ -768,12 +779,12 @@ uint8_t   SD_ReadSingleBlock   (uint32_t   sector,
 	uint8_t   err;
 
 	rxdata = SD_SendCommand(CMD17, sector, 0);
-	if(rxdata != 0x00) return rxdata;
+	if(rxdata != 0x00) return SD_ERR_RESPONSE_FAILURE;
 
 	err = SD_ReceiveData(p_buffer, BLOCK_SIZE, RELEASE);
-	if(err != 0x00) return err;
+	if(err != 0x00) return SD_ERR_RESPONSE_FAILURE;
 
-	return 0;
+	return SD_ERR_NONE;
 }
 
 
@@ -783,9 +794,9 @@ uint8_t   SD_ReadSingleBlock   (uint32_t   sector,
 * Description : 写一个SD的block块，512kB 512字节
 * Arguments   : sector   ：SD卡扇区
 *               p_buffer ：待写入数组地址指针
-* Returns     : 0: ERR_NONE
-*               1: ERR_TIMEOUT
-*               cnt: 等待写入完成循环次数
+* Returns     : SD_ERR_NONE
+*               SD_ERR_TIMEOUT
+*               SD_ERR_RESPONSE_FAILURE
 * Notes       : 
 *********************************************************************************************************
 */
@@ -796,7 +807,7 @@ uint8_t   SD_WriteSingleBlock   (uint32_t   sector,
 	uint16_t  cnt;
 
 	rxdata = SD_SendCommand(CMD24, sector, 0x00);
-	if(rxdata != 0x00) return rxdata;
+	if(rxdata != 0x00) return SD_ERR_RESPONSE_FAILURE;
 
 	SD_CS_ENABLE();
 	SPI_ReadWriteByte(0xff);                                   /* 等待 SD 就绪                         */
@@ -815,7 +826,7 @@ uint8_t   SD_WriteSingleBlock   (uint32_t   sector,
 	rxdata = SPI_ReadWriteByte(0xff);
 	if((rxdata&0x1F)!=0x05){
 		SD_CS_DISABLE();
-		return rxdata;
+		return SD_ERR_RESPONSE_FAILURE;
 	}
 
 	cnt = 0;
@@ -824,15 +835,15 @@ uint8_t   SD_WriteSingleBlock   (uint32_t   sector,
 		cnt++;
 		if(cnt>4000){                                          /* 长时间写入没有完成，报错             */
 			SD_CS_DISABLE();
-			return 1;
+			return SD_ERR_TIMEOUT;
 		}
 	}
 
 	SD_CS_DISABLE();
 	SPI_ReadWriteByte(0xff);
 
-	if(cnt >= 4000) return 1;
-	return cnt;
+	if(cnt >= 4000) return SD_ERR_TIMEOUT;
+	return SD_ERR_NONE;
 }
 
 
@@ -843,9 +854,9 @@ uint8_t   SD_WriteSingleBlock   (uint32_t   sector,
 * Arguments   : sector   : 读取的首个扇区的扇区号
 *               p_buffer : 存储读取数据地址
 *               number   : 读取块个数
-* Returns     : 0: ERR_NONE
-*               1: ERR_TIMEOUT
-*               n: ERR_READ_FAIL_CNT
+* Returns     : SD_ERR_NONE
+*               SD_ERR_TIMEOUT
+*               SD_ERR_RESPONSE_FAILURE
 * Notes       : 
 *********************************************************************************************************
 */
@@ -857,7 +868,7 @@ uint8_t   SD_ReadMultiBlock   (uint32_t   sector,
 	uint8_t   cnt;
 
 	rxdata = SD_SendCommand(CMD18, sector, 0);
-	if(rxdata != 0x00) return rxdata;
+	if(rxdata != 0x00) return SD_ERR_RESPONSE_FAILURE;
 
 	for(cnt=0;cnt<number;cnt++){
 		if(SD_ReceiveData(p_buffer, BLOCK_SIZE, NO_RELEASE) != 0x00) break;
@@ -868,8 +879,8 @@ uint8_t   SD_ReadMultiBlock   (uint32_t   sector,
 	SD_CS_DISABLE();
 	SPI_ReadWriteByte(0xFF);
 
-	if(cnt < number) return cnt;
-	return 0;
+	if(cnt < number) return SD_ERR_RESPONSE_FAILURE;
+	return SD_ERR_NONE;
 }
 
 
@@ -880,9 +891,9 @@ uint8_t   SD_ReadMultiBlock   (uint32_t   sector,
 * Arguments   : sector   : 写入的首个扇区的扇区号
 *               p_buffer : 待写入数据首地址
 *               number   : 扇区个数
-* Returns     : 0: ERR_NONE
-*               1: ERR_TIMEOUT
-*               n: ERR_WRITE_FAIL_CNT
+* Returns     : SD_ERR_NONE
+*               SD_ERR_TIMEOUT
+*               SD_ERR_RESPONSE_FAILURE
 * Notes       : 
 *********************************************************************************************************
 */
@@ -892,11 +903,12 @@ uint8_t   SD_WriteMultiBlock   (uint32_t   sector,
 {
 	uint8_t   rxdata;
 	uint8_t   cnt;
-
+    
+    uint16_t  cnt_timeout = 0;
 	uint16_t  i;
 
 	rxdata = SD_SendCommand(CMD25, sector, 0x00);
-	if(rxdata != 0x00) return rxdata;
+	if(rxdata != 0x00) return SD_ERR_RESPONSE_FAILURE;
 
 	SD_CS_ENABLE();
 	SPI_ReadWriteByte(0xff);
@@ -916,16 +928,30 @@ uint8_t   SD_WriteMultiBlock   (uint32_t   sector,
 
 		rxdata = SPI_ReadWriteByte(0xff);                      /* 接收SD应答                           */
 
-		while(!SPI_ReadWriteByte(0xff));                       /* 在SD卡忙碌时循环等待                 */
+		while(!SPI_ReadWriteByte(0xff)){
+            cnt_timeout++;
+            if(cnt_timeout >= 2000){
+                SD_CS_DISABLE();
+                return SD_ERR_TIMEOUT;
+            }
+        }
 	}
 
 	SPI_ReadWriteByte(0xFD);
 	SPI_ReadWriteByte(0xff);
-	while(!SPI_ReadWriteByte(0xff));
+    
+    cnt_timeout = 0;
+	while(!SPI_ReadWriteByte(0xff)){
+        cnt_timeout++;
+        if(cnt_timeout >= 2000){
+            SD_CS_DISABLE();
+            return SD_ERR_TIMEOUT;
+        }
+    }
 
 	SD_CS_DISABLE();
 
-	return 0;
+	return SD_ERR_NONE;
 }
 
 
@@ -934,16 +960,18 @@ uint8_t   SD_WriteMultiBlock   (uint32_t   sector,
 *                                              SD_SectorClear
 * Description : 目标扇区清除
 * Arguments   : sector：目标扇区
-* Returns     : cnt   ：清除所用循环计数
+* Returns     : SD_ERR_NONE
+*               SD_ERR_TIMEOUT
+*               SD_ERR_RESPONSE_FAILURE
 * Notes       : 
 *********************************************************************************************************
 */
 uint8_t   SD_SectorClear   (uint32_t   sector)
 {
-	uint16_t   cnt;
+	uint8_t   err;
 
-	cnt = SD_WriteSingleBlock(sector,SD_Sector_Clear_Array);
-	return cnt;
+	err = SD_WriteSingleBlock(sector,SD_Sector_Clear_Array);
+	return err;
 }
 
 
