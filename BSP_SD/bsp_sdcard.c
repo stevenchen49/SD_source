@@ -4,7 +4,7 @@
 * By      : chen
 * Date    : 2017.8.9
 *********************************************************************************************************
-* Note(s) : ÉÈÇø¶ÁĞ´×îºÃ´Ó 10000 ÉÈÇø¿ªÊ¼
+* Note(s) : æ‰‡åŒºè¯»å†™æœ€å¥½ä» 10000 æ‰‡åŒºå¼€å§‹
 *********************************************************************************************************
 */
  
@@ -20,15 +20,15 @@
 *                                                CONSTANTS
 *********************************************************************************************************
 */
-u8   SD_Type=0;                                            /* SD¿¨ÀàĞÍ                                 */
+u8   SD_Type=0;                                            /* SDå¡ç±»å‹                                 */
 
-u8   SD_Sector_Clear_Array[512];                           /* SD¿¨ÉÈÇø²Á³ıÓÃÊı×é                       */
+u8   SD_Sector_Clear_Array[512];                           /* SDå¡æ‰‡åŒºæ“¦é™¤ç”¨æ•°ç»„                       */
 
 u8   SD_CID_Data[18];
 u8   SD_CSD_Data[18];
 /*
 *****************************************
-*          µ÷ÊÔÓÃÁÙÊ±È«¾Ö±äÁ¿
+*          è°ƒè¯•ç”¨ä¸´æ—¶å…¨å±€å˜é‡
 *****************************************
 */
 u8   test_return;
@@ -202,7 +202,7 @@ float   test_capacity;
 /*
 *********************************************************************************************************
 *                                             SD_Card_SPI_Init
-* Description : SPI ³õÊ¼»¯º¯Êı
+* Description : SPI åˆå§‹åŒ–å‡½æ•°
 * Arguments   : NONE
 * Returns     : NONE 
 * Notes       : 
@@ -264,8 +264,8 @@ void   SD_Card_SPI_Init   (void)
 /*
 *********************************************************************************************************
 *                                             SD_Card_SPI_Init
-* Description : SD_SPI ËÙ¶ÈÉèÖÃ
-* Arguments   : speed_set£ºËÙ¶ÈÉèÖÃ£¬¸ßËÙ»òÕßµÍËÙ
+* Description : SD_SPI é€Ÿåº¦è®¾ç½®
+* Arguments   : speed_setï¼šé€Ÿåº¦è®¾ç½®ï¼Œé«˜é€Ÿæˆ–è€…ä½é€Ÿ
 * Returns     : NONE
 * Notes       : 
 *********************************************************************************************************
@@ -300,9 +300,9 @@ void   SD_Card_SPI_Speed_Set   (uint8_t   speed_set)
 /*
 *********************************************************************************************************
 *                                         SPI_ReadWrite_Byte
-* Description : SPI¶ÁĞ´Êı¾İ
-* Arguments   : txdata£º´ı·¢ËÍÊı¾İ
-* Returns     : rxdata: ·µ»ØÊı¾İ
+* Description : SPIè¯»å†™æ•°æ®
+* Arguments   : txdataï¼šå¾…å‘é€æ•°æ®
+* Returns     : rxdata: è¿”å›æ•°æ®
 * Notes       : 
 *********************************************************************************************************
 */
@@ -330,7 +330,7 @@ uint8_t   SPI_ReadWriteByte   (uint8_t   txdata)
 /*
 *********************************************************************************************************
 *                                           SD_WaitReady
-* Description : µÈ´ı SD ·¢ËÍ/½ÓÊÕÍê³É
+* Description : ç­‰å¾… SD å‘é€/æ¥æ”¶å®Œæˆ
 * Arguments   : NONE
 * Returns     : SD_ERR_NONE
 *               SD_ERR_TIMEOUT
@@ -355,11 +355,11 @@ uint8_t   SD_WaitReady   (void)
 /*
 *********************************************************************************************************
 *                                           SD_SendCommand
-* Description : ·¢ËÍÖ¸Áî£¬½áÊø·¢ËÍÊ±¹Ø±ÕÆ¬Ñ¡
-* Arguments   : cmd£º   Ö¸Áî
-*               arg£º   ²ÎÊı
-*               crc£º   Ğ£Ñé
-* Returns     : rxdata: ·µ»ØÊı¾İ
+* Description : å‘é€æŒ‡ä»¤ï¼Œç»“æŸå‘é€æ—¶å…³é—­ç‰‡é€‰
+* Arguments   : cmdï¼š   æŒ‡ä»¤
+*               argï¼š   å‚æ•°
+*               crcï¼š   æ ¡éªŒ
+* Returns     : rxdata: è¿”å›æ•°æ®
 * Notes       : 
 *********************************************************************************************************
 */
@@ -398,11 +398,11 @@ uint8_t   SD_SendCommand   (u8 cmd, u32 arg, u8 crc)
 /*
 *********************************************************************************************************
 *                                           SD_SendCommand_NoDeassert
-* Description : ·¢ËÍÖ¸Áî£¬·¢ËÍ½áÊøºó²»¹Ø±ÕÆ¬Ñ¡
-* Arguments   : cmd£º   Ö¸Áî
-*               arg£º   ²ÎÊı
-*               crc£º   Ğ£Ñé
-* Returns     : rxdata: ·µ»ØÊı¾İ
+* Description : å‘é€æŒ‡ä»¤ï¼Œå‘é€ç»“æŸåä¸å…³é—­ç‰‡é€‰
+* Arguments   : cmdï¼š   æŒ‡ä»¤
+*               argï¼š   å‚æ•°
+*               crcï¼š   æ ¡éªŒ
+* Returns     : rxdata: è¿”å›æ•°æ®
 * Notes       : 
 *********************************************************************************************************
 */
@@ -436,10 +436,10 @@ uint8_t   SD_SendCommand_NoDeassert   (u8 cmd, u32 arg, u8 crc)
 /*
 *********************************************************************************************************
 *                                           SD_ReceiveData
-* Description : SPI ¶ÁÈ¡Ö¸¶¨³¤¶ÈµÄÊı¾İ
-* Arguments   : p_data£º Êı¾İ´æ·ÅµØÖ·
-*               length£º Êı¾İ³¤¶È
-*               release£ºÆ¬Ñ¡ÊÍ·Å
+* Description : SPI è¯»å–æŒ‡å®šé•¿åº¦çš„æ•°æ®
+* Arguments   : p_dataï¼š æ•°æ®å­˜æ”¾åœ°å€
+*               lengthï¼š æ•°æ®é•¿åº¦
+*               releaseï¼šç‰‡é€‰é‡Šæ”¾
 * Returns     : SD_ERR_NONE
 *               SD_ERR_TIMEOUT
 * Notes       : 
@@ -483,8 +483,8 @@ uint8_t   SD_ReceiveData   (uint8_t  *p_data,
 /*
 *********************************************************************************************************
 *                                              SD_GetCID
-* Description : »ñÈ¡ SD CID ĞÅÏ¢ÈçÖÆÔìÉÌµÈ
-* Arguments   : p_cid_data£ºÓÃÓÚ´æ·ÅCIDĞÅÏ¢µÄµØÖ·,ĞèÒª³¤¶È16×Ö½ÚÒÔÉÏ
+* Description : è·å– SD CID ä¿¡æ¯å¦‚åˆ¶é€ å•†ç­‰
+* Arguments   : p_cid_dataï¼šç”¨äºå­˜æ”¾CIDä¿¡æ¯çš„åœ°å€,éœ€è¦é•¿åº¦16å­—èŠ‚ä»¥ä¸Š
 * Returns     : SD_ERR_NONE
 *               SD_ERR_TIMEOUT
 *               SD_ERR_RESPONSE_FAILURE
@@ -530,8 +530,8 @@ uint8_t   SD_GetCID   (uint8_t  *p_cid_data)
 /*
 *********************************************************************************************************
 *                                              SD_GetCSD
-* Description : »ñÈ¡ SD CSD ĞÅÏ¢Èç´æ´¢ÈİÁ¿£¬´æ´¢ËÙ¶È
-* Arguments   : p_csd_data£ºÓÃÓÚ´æ·ÅCSDĞÅÏ¢µÄµØÖ·£¬ĞèÒª³¤¶È16×Ö½ÚÒÔÉÏ
+* Description : è·å– SD CSD ä¿¡æ¯å¦‚å­˜å‚¨å®¹é‡ï¼Œå­˜å‚¨é€Ÿåº¦
+* Arguments   : p_csd_dataï¼šç”¨äºå­˜æ”¾CSDä¿¡æ¯çš„åœ°å€ï¼Œéœ€è¦é•¿åº¦16å­—èŠ‚ä»¥ä¸Š
 * Returns     : SD_ERR_NONE
 *               SD_ERR_TIMEOUT
 *               SD_ERR_RESPONSE_FAILURE
@@ -576,9 +576,9 @@ uint8_t   SD_GetCSD   (uint8_t   *p_csd_data)
 /*
 *********************************************************************************************************
 *                                              SD_GetCapacity
-* Description : »ñÈ¡SD¿¨ÈİÁ¿
+* Description : è·å–SDå¡å®¹é‡
 * Arguments   : NONE
-* Returns     : capacity_fp: SD¿¨ÈİÁ¿£¬µ¥Î»GB£¬Èç·µ»Ø7.0      
+* Returns     : capacity_fp: SDå¡å®¹é‡ï¼Œå•ä½GBï¼Œå¦‚è¿”å›7.0      
 *               SD_ERR_RESPONSE_FAILURE
 * Notes       : 
 *********************************************************************************************************
@@ -640,7 +640,7 @@ float   SD_GetCapacity   (void)
 /*
 *********************************************************************************************************
 *                                           SD_Init
-* Description : SD ³õÊ¼»¯
+* Description : SD åˆå§‹åŒ–
 * Arguments   : NONE
 * Returns     : SD_ERR_NONE
 *               SD_ERR_TIMEOUT
@@ -657,26 +657,26 @@ uint8_t   SD_Init   (void)
 	uint16_t  retry; 
 	
 	SD_Card_SPI_Init();
-                                                                  /* SPI ³õÊ¼»¯                        */
+                                                                  /* SPI åˆå§‹åŒ–                        */
 	for(cnt=0;cnt<0xf00;cnt++){};
 	for(cnt=0;cnt<10;cnt++){
 		SPI_ReadWriteByte(0xFF);
 	}
 
-	for(cnt=0;cnt<200;cnt++){                                     /* SD SPI Ä£Ê½                       */
+	for(cnt=0;cnt<200;cnt++){                                     /* SD SPI æ¨¡å¼                       */
 		rxdata = SD_SendCommand(CMD0, 0, 0x95);
 		if(rxdata == 0x01) break;
 	}
 	
 	if(cnt>=200) return SD_ERR_TIMEOUT; 
 	
-	rxdata = SD_SendCommand_NoDeassert(8, 0x1aa, 0x87);           /* Ñ¯ÎÊ SD °æ±¾                      */
+	rxdata = SD_SendCommand_NoDeassert(8, 0x1aa, 0x87);           /* è¯¢é—® SD ç‰ˆæœ¬                      */
   
 	/* ---------------------- SD 1.0 ---------------------- */
 	if(rxdata == 0x05){
 		SD_Type = SD_TYPE_V1;
 		SD_CS_DISABLE();
-		SPI_ReadWriteByte(0xFF);                                  /* ²éÑ¯ÀàĞÍ SD or MMC                */
+		SPI_ReadWriteByte(0xFF);                                  /* æŸ¥è¯¢ç±»å‹ SD or MMC                */
 		
 		for(cnt=0;cnt<400;cnt++){
 			rxdata = SD_SendCommand(CMD55, 0, 0);
@@ -685,7 +685,7 @@ uint8_t   SD_Init   (void)
 			if(rxdata == 0x00) break;
 		}
 
-		if(cnt>=400){                                             /* MMC ÀàĞÍ³õÊ¼»¯                    */
+		if(cnt>=400){                                             /* MMC ç±»å‹åˆå§‹åŒ–                    */
 			for(cnt=0;cnt<400;cnt++){
 				rxdata = SD_SendCommand(1, 0, 0);
 				if(rxdata == 0x00) break;
@@ -694,7 +694,7 @@ uint8_t   SD_Init   (void)
 			SD_Type = SD_TYPE_MMC;
 		}
 
-		SD_Card_SPI_Speed_Set(SD_SPI_SPEED_HIGH);                 /* SPI ¸ßËÙ£¬ÅäÖÃ½áÊø¿ªÊ¼Ê¹ÓÃ SD     */
+		SD_Card_SPI_Speed_Set(SD_SPI_SPEED_HIGH);                 /* SPI é«˜é€Ÿï¼Œé…ç½®ç»“æŸå¼€å§‹ä½¿ç”¨ SD     */
 		SPI_ReadWriteByte(0xFF);
 
 		rxdata = SD_SendCommand(CMD16, 512, 0xff);
@@ -702,7 +702,7 @@ uint8_t   SD_Init   (void)
 
 	/* ---------------------- SD 2.0 ---------------------- */
 	}else if(rxdata == 0x01){
-		buff[0] = SPI_ReadWriteByte(0xFF);                        /* ½ÓÊÕCMD8ÃüÁî                      */
+		buff[0] = SPI_ReadWriteByte(0xFF);                        /* æ¥æ”¶CMD8å‘½ä»¤                      */
 		buff[1] = SPI_ReadWriteByte(0xFF);  
 		buff[2] = SPI_ReadWriteByte(0xFF);  
 		buff[3] = SPI_ReadWriteByte(0xFF);  
@@ -710,7 +710,7 @@ uint8_t   SD_Init   (void)
 		SD_CS_DISABLE();
 		SPI_ReadWriteByte(0xFF);
     
-		if(buff[2]==0x01 && buff[3]==0xAA){                       /* µçÑ¹Ö§³Ö·¶Î§ÅĞ¶Ï                  */
+		if(buff[2]==0x01 && buff[3]==0xAA){                       /* ç”µå‹æ”¯æŒèŒƒå›´åˆ¤æ–­                  */
 			for(cnt=0;cnt<200;cnt++){
 				rxdata = SD_SendCommand(CMD55, 0, 0);
 				if(rxdata!=0x01) return SD_ERR_RESPONSE_FAILURE;
@@ -718,10 +718,10 @@ uint8_t   SD_Init   (void)
 				if(rxdata == 0x00) break;
 			}
       
-			rxdata = SD_SendCommand_NoDeassert(CMD58, 0, 0);      /* ÅĞ¶Ï SD2.0 ¾ßÌå°æ±¾               */
+			rxdata = SD_SendCommand_NoDeassert(CMD58, 0, 0);      /* åˆ¤æ–­ SD2.0 å…·ä½“ç‰ˆæœ¬               */
 			if(rxdata!=0x00) return SD_ERR_RESPONSE_FAILURE;  
 
-			buff[0] = SPI_ReadWriteByte(0xFF);                    /* »ñÈ¡OCRÖ¸Áî                       */
+			buff[0] = SPI_ReadWriteByte(0xFF);                    /* è·å–OCRæŒ‡ä»¤                       */
 			buff[1] = SPI_ReadWriteByte(0xFF); 
 			buff[2] = SPI_ReadWriteByte(0xFF);
 			buff[3] = SPI_ReadWriteByte(0xFF);
@@ -735,15 +735,15 @@ uint8_t   SD_Init   (void)
 				SD_Type = SD_TYPE_V2;
 			}
 
-			SD_Card_SPI_Speed_Set(SD_SPI_SPEED_HIGH);             /* SPI ¸ßËÙ£¬¿ªÊ¼Ê¹ÓÃ SD             */
+			SD_Card_SPI_Speed_Set(SD_SPI_SPEED_HIGH);             /* SPI é«˜é€Ÿï¼Œå¼€å§‹ä½¿ç”¨ SD             */
 			
-			for(cnt=0;cnt<0xf00;cnt++){};                         /* ÑÓ³ÙµÈ´ı SPI ÖØĞÂÅäÖÃÍê³É         */
+			for(cnt=0;cnt<0xf00;cnt++){};                         /* å»¶è¿Ÿç­‰å¾… SPI é‡æ–°é…ç½®å®Œæˆ         */
 			SPI_ReadWriteByte(0xFF);
 		}
 	}
 
 
-	/* ------------------------------------ test ¿ÉÉ¾³ı ------------------------------------ */
+	/* ------------------------------------ test å¯åˆ é™¤ ------------------------------------ */
 	SD_GetCID(test_cid);
 	SD_GetCSD(test_csd);
 
@@ -753,9 +753,9 @@ uint8_t   SD_Init   (void)
 	test_return = SD_WriteSingleBlock(3,test_sector_write);
 
 	test_return = SD_ReadSingleBlock(3,test_sector_read);
-    test_return = SD_WriteMultiBlock(50000,test_multi_sector_write,3);
+        test_return = SD_WriteMultiBlock(50000,test_multi_sector_write,3);
 	test_return = SD_ReadMultiBlock(4,test_multi_sector_read,3);
-	/* ------------------------------------ test ¿ÉÉ¾³ı ------------------------------------ */
+	/* ------------------------------------ test å¯åˆ é™¤ ------------------------------------ */
 
 	return SD_ERR_NONE;
 }
@@ -764,9 +764,9 @@ uint8_t   SD_Init   (void)
 /*
 *********************************************************************************************************
 *                                             SD_ReadSingleBlock 
-* Description : ¶ÁÈ¡SD¿¨µÄÒ»¸öblock¿é£¬512kB 512×Ö½Ú
-* Arguments   : sector   £ºSD¿¨ÉÈÇø
-*               p_buffer £ºÓÃÓÚ´æ·Å¶ÁÈ¡Êı¾İµÄÊı×éÖ¸Õë
+* Description : è¯»å–SDå¡çš„ä¸€ä¸ªblockå—ï¼Œ512kB 512å­—èŠ‚
+* Arguments   : sector   ï¼šSDå¡æ‰‡åŒº
+*               p_buffer ï¼šç”¨äºå­˜æ”¾è¯»å–æ•°æ®çš„æ•°ç»„æŒ‡é’ˆ
 * Returns     : SD_ERR_NONE
 *               SD_ERR_RESPONSE_FAILURE
 * Notes       : 
@@ -791,9 +791,9 @@ uint8_t   SD_ReadSingleBlock   (uint32_t   sector,
 /*
 *********************************************************************************************************
 *                                              SD_WriteSingleBlock
-* Description : Ğ´Ò»¸öSDµÄblock¿é£¬512kB 512×Ö½Ú
-* Arguments   : sector   £ºSD¿¨ÉÈÇø
-*               p_buffer £º´ıĞ´ÈëÊı×éµØÖ·Ö¸Õë
+* Description : å†™ä¸€ä¸ªSDçš„blockå—ï¼Œ512kB 512å­—èŠ‚
+* Arguments   : sector   ï¼šSDå¡æ‰‡åŒº
+*               p_buffer ï¼šå¾…å†™å…¥æ•°ç»„åœ°å€æŒ‡é’ˆ
 * Returns     : SD_ERR_NONE
 *               SD_ERR_TIMEOUT
 *               SD_ERR_RESPONSE_FAILURE
@@ -810,17 +810,17 @@ uint8_t   SD_WriteSingleBlock   (uint32_t   sector,
 	if(rxdata != 0x00) return SD_ERR_RESPONSE_FAILURE;
 
 	SD_CS_ENABLE();
-	SPI_ReadWriteByte(0xff);                                   /* µÈ´ı SD ¾ÍĞ÷                         */
+	SPI_ReadWriteByte(0xff);                                   /* ç­‰å¾… SD å°±ç»ª                         */
 	SPI_ReadWriteByte(0xff);
 	SPI_ReadWriteByte(0xff);
 
-	SPI_ReadWriteByte(0xFE);                                   /* ÆğÊ¼ÁîÅÆ0xFE                         */
+	SPI_ReadWriteByte(0xFE);                                   /* èµ·å§‹ä»¤ç‰Œ0xFE                         */
 
 	for(cnt=0;cnt<BLOCK_SIZE;cnt++){
 		SPI_ReadWriteByte(p_buffer[cnt]);
 	}
 
-	SPI_ReadWriteByte(0xff);                                   /* CRCĞ£ÑéÎ»£¬ÒÑ½ûÖ¹£¬·¢ËÍÎ±CRC         */
+	SPI_ReadWriteByte(0xff);                                   /* CRCæ ¡éªŒä½ï¼Œå·²ç¦æ­¢ï¼Œå‘é€ä¼ªCRC         */
 	SPI_ReadWriteByte(0xff);
 
 	rxdata = SPI_ReadWriteByte(0xff);
@@ -830,10 +830,10 @@ uint8_t   SD_WriteSingleBlock   (uint32_t   sector,
 	}
 
 	cnt = 0;
-	while(!SPI_ReadWriteByte(0xff))                            /* µÈ´ıĞ´²Ù×÷Íê³É                       */
+	while(!SPI_ReadWriteByte(0xff))                            /* ç­‰å¾…å†™æ“ä½œå®Œæˆ                       */
 	{
 		cnt++;
-		if(cnt>4000){                                          /* ³¤Ê±¼äĞ´ÈëÃ»ÓĞÍê³É£¬±¨´í             */
+		if(cnt>4000){                                          /* é•¿æ—¶é—´å†™å…¥æ²¡æœ‰å®Œæˆï¼ŒæŠ¥é”™             */
 			SD_CS_DISABLE();
 			return SD_ERR_TIMEOUT;
 		}
@@ -850,10 +850,10 @@ uint8_t   SD_WriteSingleBlock   (uint32_t   sector,
 /*
 *********************************************************************************************************
 *                                              SD_ReadMultiBlock
-* Description : Ò»´Î¶ÁÈ¡¶à¸öÁ¬ĞøÉÈÇøµÄÊı¾İ
-* Arguments   : sector   : ¶ÁÈ¡µÄÊ×¸öÉÈÇøµÄÉÈÇøºÅ
-*               p_buffer : ´æ´¢¶ÁÈ¡Êı¾İµØÖ·
-*               number   : ¶ÁÈ¡¿é¸öÊı
+* Description : ä¸€æ¬¡è¯»å–å¤šä¸ªè¿ç»­æ‰‡åŒºçš„æ•°æ®
+* Arguments   : sector   : è¯»å–çš„é¦–ä¸ªæ‰‡åŒºçš„æ‰‡åŒºå·
+*               p_buffer : å­˜å‚¨è¯»å–æ•°æ®åœ°å€
+*               number   : è¯»å–å—ä¸ªæ•°
 * Returns     : SD_ERR_NONE
 *               SD_ERR_TIMEOUT
 *               SD_ERR_RESPONSE_FAILURE
@@ -887,10 +887,10 @@ uint8_t   SD_ReadMultiBlock   (uint32_t   sector,
 /*
 *********************************************************************************************************
 *                                              SD_WriteMultiBlock
-* Description : Ò»´ÎĞ´Èë¶à¸öÁ¬ĞøÉÈÇø
-* Arguments   : sector   : Ğ´ÈëµÄÊ×¸öÉÈÇøµÄÉÈÇøºÅ
-*               p_buffer : ´ıĞ´ÈëÊı¾İÊ×µØÖ·
-*               number   : ÉÈÇø¸öÊı
+* Description : ä¸€æ¬¡å†™å…¥å¤šä¸ªè¿ç»­æ‰‡åŒº
+* Arguments   : sector   : å†™å…¥çš„é¦–ä¸ªæ‰‡åŒºçš„æ‰‡åŒºå·
+*               p_buffer : å¾…å†™å…¥æ•°æ®é¦–åœ°å€
+*               number   : æ‰‡åŒºä¸ªæ•°
 * Returns     : SD_ERR_NONE
 *               SD_ERR_TIMEOUT
 *               SD_ERR_RESPONSE_FAILURE
@@ -904,7 +904,7 @@ uint8_t   SD_WriteMultiBlock   (uint32_t   sector,
 	uint8_t   rxdata;
 	uint8_t   cnt;
     
-    uint16_t  cnt_timeout = 0;
+        uint16_t  cnt_timeout = 0;
 	uint16_t  i;
 
 	rxdata = SD_SendCommand(CMD25, sector, 0x00);
@@ -923,10 +923,10 @@ uint8_t   SD_WriteMultiBlock   (uint32_t   sector,
 			rxdata = SPI_ReadWriteByte(*p_buffer++);
 		}
 
-		rxdata = SPI_ReadWriteByte(0xff);                      /* CRCĞ£ÑéÎ»£¬ÒÑ½ûÖ¹£¬·¢ËÍÎ±CRC         */
+		rxdata = SPI_ReadWriteByte(0xff);                      /* CRCæ ¡éªŒä½ï¼Œå·²ç¦æ­¢ï¼Œå‘é€ä¼ªCRC         */
 		rxdata = SPI_ReadWriteByte(0xff);
 
-		rxdata = SPI_ReadWriteByte(0xff);                      /* ½ÓÊÕSDÓ¦´ğ                           */
+		rxdata = SPI_ReadWriteByte(0xff);                      /* æ¥æ”¶SDåº”ç­”                           */
 
 		while(!SPI_ReadWriteByte(0xff)){
             cnt_timeout++;
@@ -940,7 +940,7 @@ uint8_t   SD_WriteMultiBlock   (uint32_t   sector,
 	SPI_ReadWriteByte(0xFD);
 	SPI_ReadWriteByte(0xff);
     
-    cnt_timeout = 0;
+        cnt_timeout = 0;
 	while(!SPI_ReadWriteByte(0xff)){
         cnt_timeout++;
         if(cnt_timeout >= 2000){
@@ -958,8 +958,8 @@ uint8_t   SD_WriteMultiBlock   (uint32_t   sector,
 /*
 *********************************************************************************************************
 *                                              SD_SectorClear
-* Description : Ä¿±êÉÈÇøÇå³ı
-* Arguments   : sector£ºÄ¿±êÉÈÇø
+* Description : ç›®æ ‡æ‰‡åŒºæ¸…é™¤
+* Arguments   : sectorï¼šç›®æ ‡æ‰‡åŒº
 * Returns     : SD_ERR_NONE
 *               SD_ERR_TIMEOUT
 *               SD_ERR_RESPONSE_FAILURE
