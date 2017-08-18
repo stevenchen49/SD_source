@@ -9,6 +9,11 @@
 #include <stm32f4xx.h>
 #include <stm32f4xx_conf.h>
 
+#include <ff.h>
+#include <string.h>
+#include <stdio.h>
+#include <bsp_rtc.h>
+
 /*
 *********************************************************************************************************
 *                                                CONSTANTS
@@ -67,15 +72,21 @@
 
 #define SD_ERR_NONE                                   0x00
 #define SD_ERR_TIMEOUT                                0x01
-#define SD_ERR_RESPONSE_FAILURE                       0XFF
+#define SD_ERR_RESPONSE_FAILURE                       0xFF
 
+#define SD_DATA_TYPE_DEC                              0x00
+#define SD_DATA_TYPE_HEX                              0x01
+#define SD_DATA_TYPE_FP                               0x02
 /*
 *********************************************************************************************************
 *                                                 EXTERNS
 *********************************************************************************************************
 */
-extern   u8   SD_CID_Data[18];
-extern   u8   SD_CSD_Data[18];
+extern   u8      SD_CID_Data[18];
+extern   u8      SD_CSD_Data[18];
+
+extern   DWORD   SD_Total_Capacity;
+extern   DWORD   SD_Free_Capacity;
 
 /*
 *********************************************************************************************************
@@ -126,4 +137,22 @@ uint8_t   SD_WriteMultiBlock      (uint32_t   sector,
 
 uint8_t   SD_SectorClear          (uint32_t   sector);
 
+
+
+FRESULT   SD_FATFS_Init           (DWORD     *total,
+                                   DWORD     *free);
+
+FRESULT   SD_FATFS_Creat_File     (TCHAR     *path);
+
+FRESULT   SD_FATFS_Read_File      (TCHAR     *path,
+                                   uint8_t   *p_buff,
+                                   uint32_t   buff_len);
+
+FRESULT   SD_FATFS_Write_File     (TCHAR     *path,
+                                   void      *buff);
+
+FRESULT   SD_Write_Data           (TCHAR     *path,
+                                   void      *p_buff,
+                                   uint32_t   buff_len,
+                                   uint8_t    type);
 #endif

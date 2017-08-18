@@ -1,3 +1,4 @@
+
 /*
 *********************************************************************************************************
 * File    : bsp_sdcard.c
@@ -20,12 +21,30 @@
 *                                                CONSTANTS
 *********************************************************************************************************
 */
-u8   SD_Type=0;                                            /* SD卡类型                                 */
+uint8_t    SD_Type=0;                                     /* SD卡类型                                 */
 
-u8   SD_Sector_Clear_Array[512];                           /* SD卡扇区擦除用数组                       */
+uint8_t    SD_Sector_Clear_Array[512];                    /* SD卡扇区擦除用数组                       */
 
-u8   SD_CID_Data[18];
-u8   SD_CSD_Data[18];
+uint8_t    SD_CID_Data[18];                               /* SD_CID 信息                              */
+uint8_t    SD_CSD_Data[18];                               /* SD_CSD 信息                              */
+
+uint8_t    SD_Read_Buffer[512];
+
+DWORD      SD_Total_Capacity;                             /* SD 总容量 KB                             */
+DWORD      SD_Free_Capacity;                              /* SD 可用容量 KB                           */
+
+FATFS      SD_FATFS;
+
+FIL        File_Creat;
+
+FIL        File_Read_Pre;
+FIL        File_Read;
+
+FIL        File_Write_Pre;
+FIL        File_Write;
+
+RTC_DateTypeDef rtc_data;
+RTC_TimeTypeDef rtc_time;
 /*
 *****************************************
 *          调试用临时全局变量
@@ -190,8 +209,17 @@ u8   test_multi_sector_write[2048] =
  0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,
 };
 
-float   test_capacity;
+float     test_capacity;
 
+uint8_t   test_File_Write[200] = {
+	"Date: 2017.8.17\r\n"
+	"Time: 21:04 PM\r\n"
+	"时间\t\t俯仰\t\t滚转\t\t航向\r\n"
+};
+
+uint8_t   test_file_name[20] = {
+	"my_test_01.txt"
+};
 /*
 *********************************************************************************************************
 *                                           FUNCTION PROTOTYPES
@@ -602,7 +630,6 @@ float   SD_GetCapacity   (void)
 		c_size = p_csd_data[9] + ((uint32_t)p_csd_data[8]<<8)+((uint32_t)(p_csd_data[7]&0x63)<<16) + 1;
 		capacity = c_size<<9;
 
-
 	/* -------------------------- SD_V1.0 ------------------------- */
 	}else{
 		c_size = p_csd_data[6]&0x03;
@@ -742,11 +769,10 @@ uint8_t   SD_Init   (void)
 		}
 	}
 
+	SD_GetCID(SD_CID_Data);
+	SD_GetCSD(SD_CSD_Data);
 
 	/* ------------------------------------ test 可删除 ------------------------------------ */
-	SD_GetCID(test_cid);
-	SD_GetCSD(test_csd);
-
 	test_capacity = SD_GetCapacity();
 
 	test_return = SD_WriteSingleBlock(1,test_sector_write);
@@ -973,5 +999,179 @@ uint8_t   SD_SectorClear   (uint32_t   sector)
 	err = SD_WriteSingleBlock(sector,SD_Sector_Clear_Array);
 	return err;
 }
+
+
+/*
+*********************************************************************************************************
+*                                               FAT Filesystem
+*********************************************************************************************************
+*/
+
+/*
+*********************************************************************************************************
+*                                              SD_FATFS_Init
+* Description : SD FATFS 文件系统启动
+* Arguments   : total ：存放 SD 总容量的变量地址
+*               free  ；存放 SD 可用容量的变量地址
+* Returns     : res   : 函数运行结果 FRESULT 枚举类型
+* Notes       : 
+*********************************************************************************************************
+*/
+FRESULT   SD_FATFS_Init   (DWORD  *total,
+                           DWORD  *free)
+{
+	FRESULT   res;
+	DWORD     free_clusters;
+	DWORD     total_sector;
+	DWORD     free_sector;
+	FATFS    *p_fs;
+
+	res = f_mount(&SD_FATFS,"",1);
+	if(res != FR_OK) return res;
+
+	res = f_getfree("",&free_clusters,&p_fs);
+	if(res == FR_OK){
+		total_sector = (p_fs->n_fatent-2)*(p_fs->csize); ///< 总扇区数
+		free_sector  = free_clusters*(p_fs->csize);      ///< 空闲扇区数
+		*total = total_sector>>1;
+		*free  = free_sector>>1;
+	}
+
+	SD_FATFS_Creat_File((char*)test_file_name);
+	SD_FATFS_Write_File("create.txt",test_File_Write);
+
+	return res;
+}
+
+
+/*
+*********************************************************************************************************
+*                                              SD_FATFS_Creat_File
+* Description : 创建文件，并写入文件名
+* Arguments   : path : 文件路径
+* Returns     : res  : 返回错误类型，具体见 FRESULT 枚举类型
+* Notes       : 
+*********************************************************************************************************
+*/
+FRESULT   SD_FATFS_Creat_File   (TCHAR  *path)
+{
+	FRESULT   res;
+	UINT      btw;
+	UINT      br;
+
+	res = f_open(&File_Creat,path,FA_CREATE_ALWAYS | FA_WRITE);
+	if(res != FR_OK) return res;
+	btw = strlen(path);
+	res = f_write(&File_Creat,path,btw,&br);
+	if(res != FR_OK) return res;
+	res = f_close(&File_Creat);
+	return res;
+}
+
+
+/*
+*********************************************************************************************************
+*                                              SD_FATFS_Read_File
+* Description : 读取文件
+* Arguments   : path     : 文件路径
+*               p_buff   : 存放缓存
+*               buff_len : 缓存大小
+* Returns     : res      : 返回错误类型，具体见 FRESULT 枚举类型
+* Notes       : 
+*********************************************************************************************************
+*/
+FRESULT   SD_FATFS_Read_File   (TCHAR     *path,
+                                uint8_t   *p_buff,
+                                uint32_t   buff_len)
+{
+	FRESULT   res;
+	UINT      br;
+
+	res = f_open(&File_Read,path,FA_READ|FA_OPEN_EXISTING);
+	if(res != FR_OK) return res;
+	res = f_read(&File_Read,p_buff,buff_len,&br);
+	if(res != FR_OK) return res;
+	res = f_close(&File_Read);
+	return res;
+}
+
+
+/*
+*********************************************************************************************************
+*                                              SD_FATFS_Write_File
+* Description : 写入文件,从头开始写，会覆盖原有数据
+* Arguments   : path   : 文件路径
+*               p_buff ：指向待写入数据
+* Returns     : res    : 返回错误类型，具体见 FRESULT 枚举类型
+* Notes       : 
+*********************************************************************************************************
+*/
+FRESULT   SD_FATFS_Write_File   (TCHAR  *path,
+                                 void   *p_buff)
+{
+	FRESULT   res;
+	UINT      btw;
+	UINT      br;
+
+	res = f_open(&File_Write,path,FA_CREATE_ALWAYS | FA_WRITE);
+	if(res != FR_OK) return res;
+	btw = strlen(p_buff);
+	res = f_write(&File_Write,p_buff,btw,&br);
+	if(res != FR_OK) return res;
+	res = f_close(&File_Write);
+	return res;
+}
+
+
+/*
+*********************************************************************************************************
+*                                             
+* Description : 
+* Arguments   : 
+* Returns     : 
+* Notes       : 
+*********************************************************************************************************
+*/
+FRESULT   SD_Write_Data   (TCHAR     *path,
+                           void      *p_buff,
+                           uint32_t   buff_len,
+                           uint8_t    type)
+{
+	FRESULT   res;
+	FSIZE_t   fptr;
+	UINT      btw;
+	UINT      br;
+	char      str[16] = {0,0};
+	uint32_t  cnt;
+
+	res = f_open(&File_Write,path, FA_WRITE | FA_READ);
+	if(res != FR_OK) return res;
+	res = f_sync(&File_Write);
+
+	for(cnt=0;cnt<buff_len;cnt++){
+		if(type == SD_DATA_TYPE_DEC){
+			sprintf(str,"%d",((int*)p_buff)[cnt]);
+		}else if(type == SD_DATA_TYPE_HEX){
+			sprintf(str,"%x",((int*)p_buff)[cnt]);
+		}else if(type == SD_DATA_TYPE_FP){
+			sprintf(str,"%.6lf",((float)((int*)p_buff)[cnt]));
+		}else {
+			return FR_INVALID_PARAMETER;
+		}
+		btw = sizeof(str);
+		fptr = f_size(&File_Write);
+		res = f_lseek(&File_Write,fptr);
+		if(res != FR_OK) return res;
+		res = f_write(&File_Write,str,btw,&br);
+		if(res != FR_OK) return res;
+	}
+
+	File_Write_Pre = File_Write;
+	res = f_close(&File_Write);
+	return res;
+}
+
+
+
 
 
